@@ -89,7 +89,7 @@ def _get_first_singular_vectors_svd(X, Y):
     return U[:, 0], Vt[0, :]
 
 
-def _center_scale_xy(X, Y, scale=True):
+def _center_scale_xy(X, Y, scale=True, center_X=True, center_Y=True):
     """ Center X, Y and scale if the scale parameter==True
 
     Returns
@@ -97,10 +97,17 @@ def _center_scale_xy(X, Y, scale=True):
         X, Y, x_mean, y_mean, x_std, y_std
     """
     # center
-    x_mean = X.mean(axis=0)
-    X -= x_mean
-    y_mean = Y.mean(axis=0)
-    Y -= y_mean
+    # CHECK -- does the mean actually need to be returned?
+    if center_X:
+        x_mean = X.mean(axis=0)
+        X -= x_mean
+    else:
+        x_mean = np.zeros(X.shape[1])
+    if center_Y:
+        y_mean = Y.mean(axis=0)
+        Y -= y_mean
+    else:
+        y_mean = np.zeros(Y.shape[1])
     # scale
     if scale:
         x_std = X.std(axis=0, ddof=1)
@@ -137,14 +144,16 @@ class _PLS(TransformerMixin, RegressorMixin, MultiOutputMixin, BaseEstimator,
     """
 
     @abstractmethod
-    def __init__(self, n_components=2, *, scale=True,
-                 deflation_mode="regression",
+    def __init__(self, n_components=2, *, scale=True, center_X=True,
+                 center_Y=True,deflation_mode="regression",
                  mode="A", algorithm="nipals", max_iter=500, tol=1e-06,
                  copy=True):
         self.n_components = n_components
         self.deflation_mode = deflation_mode
         self.mode = mode
         self.scale = scale
+        self.center_X = center_X
+        self.center_Y = center_Y
         self.algorithm = algorithm
         self.max_iter = max_iter
         self.tol = tol
@@ -217,7 +226,7 @@ class _PLS(TransformerMixin, RegressorMixin, MultiOutputMixin, BaseEstimator,
 
         # Scale (in place)
         Xk, Yk, self._x_mean, self._y_mean, self._x_std, self._y_std = (
-            _center_scale_xy(X, Y, self.scale))
+            _center_scale_xy(X, Y, self.scale, self.center_X, self.center_Y))
 
         self.x_weights_ = np.zeros((p, n_components))  # U
         self.y_weights_ = np.zeros((q, n_components))  # V
@@ -562,6 +571,7 @@ class PLSRegression(_PLS):
 
     @_deprecate_positional_args
     def __init__(self, n_components=2, *, scale=True,
+                 center_X=True, center_Y=True,
                  max_iter=500, tol=1e-06, copy=True):
         super().__init__(
             n_components=n_components, scale=scale,
