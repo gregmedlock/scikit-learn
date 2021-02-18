@@ -102,6 +102,7 @@ def _center_scale_xy(X, Y, scale=True, center_X=True, center_Y=True):
         x_mean = X.mean(axis=0)
         X -= x_mean
     else:
+        print("did not center X")
         x_mean = np.zeros(X.shape[1])
     if center_Y:
         y_mean = Y.mean(axis=0)
@@ -575,6 +576,7 @@ class PLSRegression(_PLS):
                  max_iter=500, tol=1e-06, copy=True):
         super().__init__(
             n_components=n_components, scale=scale,
+            center_X=center_X, center_Y=center_Y,
             deflation_mode="regression", mode="A",
             algorithm='nipals', max_iter=max_iter,
             tol=tol, copy=copy)
