@@ -102,7 +102,6 @@ def _center_scale_xy(X, Y, scale=True, center_X=True, center_Y=True):
         x_mean = X.mean(axis=0)
         X -= x_mean
     else:
-        print("did not center X")
         x_mean = np.zeros(X.shape[1])
     if center_Y:
         y_mean = Y.mean(axis=0)
